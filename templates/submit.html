@@ -2,5 +2,9 @@
 {% block title %}Написать секрет{% endblock %}
 {% block content %}
 <h2>Напиши свой секрет</h2>
-<p>Здесь будет форма. (Этап 5)</p>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn">Отправить секрет</button>
+</form>
 {% endblock %}
