@@ -126,3 +126,6 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 86400  # 24 часа
 SESSION_SAVE_EVERY_REQUEST = True
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
