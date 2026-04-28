@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}Уровень {{ weight.weight }}{% endblock %}
+{% block content %}
+<h2>Уровень тяжести: {{ weight.weight }}</h2>
+<p>Всего секретов на этом уровне: {{ count }}</p>
+<a href="/secrets/">← Назад</a>
+{% endblock %}
