@@ -1,7 +1,15 @@
 {% extends 'base.html' %}
-{% block title %}Секрет сохранён{% endblock %}
+{% block title %}Секрет сохранён — Secret Exchange{% endblock %}
 {% block content %}
-<h2>Секрет сохранён</h2>
-<p>Теперь ты можешь получить чужой секрет в обмен на свой.</p>
-<a href="/exchange/" class="btn">Получить секрет</a>
+
+<div class="status-page">
+  <span class="status-glyph">🔒</span>
+  <h2>Секрет запечатан</h2>
+  <p>Он зашифрован и ждёт своего часа.<br>Теперь ты можешь получить чужой секрет в обмен.</p>
+  <div class="action-row" style="justify-content: center; margin-top: 32px;">
+    <a href="/exchange/" class="btn btn-large">Получить секрет</a>
+    <a href="/my/" class="btn btn-ghost">Мои секреты</a>
+  </div>
+</div>
+
 {% endblock %}

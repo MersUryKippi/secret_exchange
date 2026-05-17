@@ -1,7 +1,31 @@
 {% extends 'base.html' %}
-{% block title %}Уровень {{ weight.weight }}{% endblock %}
+{% block title %}Уровень {{ weight.weight }} — Secret Exchange{% endblock %}
 {% block content %}
-<h2>Уровень тяжести: {{ weight.weight }}</h2>
-<p>Всего секретов на этом уровне: {{ count }}</p>
-<a href="/secrets/">← Назад</a>
+
+<h2>Уровень тяжести {{ weight.weight }}</h2>
+
+<div class="stat-grid">
+  <div class="stat-cell">
+    <div class="stat-value">{{ count }}</div>
+    <div class="stat-label">секретов на этом уровне</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-value">{{ weight.weight }}</div>
+    <div class="stat-label">из 5 по шкале тяжести</div>
+  </div>
+</div>
+
+<p>
+  {% if weight.weight == 1 %}
+    Обмен возможен с секретами уровней 1–2.
+  {% else %}
+    Обмен возможен с секретами уровней {{ weight.weight|add:"-1" }}–{{ weight.weight|add:"1" }}.
+  {% endif %}
+</p>
+
+<div class="action-row">
+  <a href="/secrets/" class="btn btn-ghost">← Все уровни</a>
+  <a href="/submit/" class="btn">Поделиться секретом</a>
+</div>
+
 {% endblock %}

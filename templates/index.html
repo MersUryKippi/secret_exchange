@@ -1,9 +1,47 @@
 {% extends 'base.html' %}
 {% block title %}Secret Exchange — Биржа Секретов{% endblock %}
 {% block content %}
+
 <section class="hero">
-    <h1>Биржа Секретов</h1>
-    <p>Поделись своим — прочти чужой. Анонимно. Честно. Без следов.</p>
-    <a href="/submit/" class="btn">Начать обмен</a>
+  <div class="hero-rule">
+    <span class="hero-eyebrow">Биржа Секретов</span>
+  </div>
+  <h1>Каждый<br>носит в себе<br>что-то тайное</h1>
+  <p class="hero-tagline">Поделись своим — прочти чужой.<br>Анонимно. Честно. Без следов.</p>
+  <a href="/submit/" class="btn btn-large">Начать обмен</a>
 </section>
+
+<hr class="divider">
+
+<div class="steps">
+  <div class="step">
+    <div class="step-num">I</div>
+    <div class="step-content">
+      <h4>Напиши свой секрет</h4>
+      <p>Текст шифруется и хранится анонимно. Мы не знаем, кто ты.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">II</div>
+    <div class="step-content">
+      <h4>Получи чужой</h4>
+      <p>Система найдёт партнёра с похожим уровнем тяжести и произведёт обмен.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">III</div>
+    <div class="step-content">
+      <h4>Прочти и сожги</h4>
+      <p>У тебя есть 5 минут. После — текст уничтожается безвозвратно.</p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="action-row">
+  <a href="/submit/" class="btn">Поделиться секретом</a>
+  <a href="/secrets/" class="btn btn-ghost">Смотреть уровни</a>
+</div>
+
 {% endblock %}

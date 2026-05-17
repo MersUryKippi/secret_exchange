@@ -1,9 +1,765 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: sans-serif; background: #0f0f0f; color: #e0e0e0; }
-header nav { display: flex; gap: 20px; padding: 16px 24px; background: #1a1a1a; }
-header nav a { color: #e0e0e0; text-decoration: none; }
-main { padding: 40px 24px; max-width: 600px; margin: 0 auto; }
-.hero { text-align: center; padding: 60px 0; }
-.hero h1 { font-size: 2.5rem; margin-bottom: 16px; }
-.btn { display: inline-block; margin-top: 24px; padding: 12px 32px;
-       background: #c0392b; color: white; border-radius: 6px; text-decoration: none; }
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;1,400;1,500&display=swap');
+
+/* ─── Design Tokens ─────────────────────────────────────────────────── */
+:root {
+  --bg:           #070605;
+  --surface:      #100e0b;
+  --surface-2:    #181410;
+  --surface-3:    #221d17;
+  --accent:       #c47f34;
+  --accent-dim:   #6e4718;
+  --accent-glow:  rgba(196, 127, 52, 0.12);
+  --burn:         #b83228;
+  --burn-dim:     #5a1810;
+  --burn-glow:    rgba(184, 50, 40, 0.15);
+  --text:         #ddd0b0;
+  --text-muted:   #6a5a3e;
+  --text-faint:   #342b1e;
+  --border:       #231e16;
+  --border-soft:  rgba(196, 127, 52, 0.1);
+  --radius:       2px;
+}
+
+/* ─── Reset & Base ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Lora', Georgia, serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.65;
+  position: relative;
+}
+
+/* subtle noise overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 10px; }
+
+/* ─── Header / Nav ───────────────────────────────────────────────────── */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: rgba(7, 6, 5, 0.90);
+  backdrop-filter: blur(16px) saturate(1.2);
+  border-bottom: 1px solid var(--border);
+}
+
+header nav {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+}
+
+.nav-brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.98rem;
+  font-style: italic;
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: opacity 0.2s;
+}
+
+.nav-brand:hover { opacity: 0.8; text-decoration: none; }
+
+.nav-flame {
+  width: 14px;
+  height: 20px;
+  display: inline-block;
+  background: radial-gradient(ellipse at 50% 100%, #c47f34 0%, #8b3a10 50%, transparent 100%);
+  border-radius: 50% 50% 35% 35%;
+  animation: flicker 4s ease-in-out infinite;
+  flex-shrink: 0;
+  position: relative;
+  top: -1px;
+}
+
+@keyframes flicker {
+  0%, 80%, 100% { transform: scaleX(1) scaleY(1); opacity: 1; }
+  10%  { transform: scaleX(0.9) scaleY(1.04); }
+  30%  { transform: scaleX(1.05) scaleY(0.97); }
+  50%  { transform: scaleX(0.95) scaleY(1.02); }
+  88%  { opacity: 0.85; }
+  92%  { opacity: 0.4; transform: scaleX(0.8) scaleY(0.9); }
+  96%  { opacity: 1; }
+}
+
+.nav-links {
+  display: flex;
+  align-items: stretch;
+  height: 58px;
+}
+
+.nav-links a {
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-left: 1px solid var(--border);
+  transition: color 0.2s, background 0.2s;
+}
+
+.nav-links a:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+
+/* ─── Main Layout ────────────────────────────────────────────────────── */
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 56px 24px 100px;
+  animation: fadeUp 0.45s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Hero ───────────────────────────────────────────────────────────── */
+.hero {
+  text-align: center;
+  padding: 72px 0 56px;
+}
+
+.hero-rule {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 36px;
+  justify-content: center;
+}
+
+.hero-rule::before,
+.hero-rule::after {
+  content: '';
+  flex: 1;
+  max-width: 120px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--accent-dim));
+}
+.hero-rule::after { background: linear-gradient(to left, transparent, var(--accent-dim)); }
+
+.hero-eyebrow {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.4rem, 6.5vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1.08;
+  margin-bottom: 22px;
+  background: linear-gradient(150deg, #e0d0a8 0%, #c47f34 55%, #7a3d10 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-tagline {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  max-width: 360px;
+  margin: 0 auto 36px;
+  line-height: 1.7;
+}
+
+.hero-features {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin: 36px 0;
+  flex-wrap: wrap;
+}
+
+.hero-feature {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hero-feature::before {
+  content: '—';
+  color: var(--accent-dim);
+}
+
+/* ─── Typography ─────────────────────────────────────────────────────── */
+h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.75rem;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+h2 .subtitle {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+p {
+  line-height: 1.75;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+a:hover { text-decoration: underline; opacity: 0.85; }
+
+hr.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 36px 0;
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────────── */
+.btn, button.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 26px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: all 0.18s ease;
+  border: 1px solid var(--accent-dim);
+  background: transparent;
+  color: var(--accent);
+  margin-top: 8px;
+}
+
+.btn:hover {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  text-decoration: none;
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.btn-danger, button.btn-danger {
+  color: #c06060;
+  border-color: var(--burn-dim);
+}
+
+.btn-danger:hover {
+  background: var(--burn);
+  color: #fff;
+  border-color: var(--burn);
+  box-shadow: 0 0 24px var(--burn-glow);
+}
+
+.btn-ghost, button.btn-ghost {
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+
+.btn-ghost:hover {
+  color: var(--text);
+  background: var(--surface-2);
+  border-color: var(--text-muted);
+}
+
+.btn-large {
+  padding: 14px 38px;
+  font-size: 0.78rem;
+}
+
+/* ─── Form Styles ────────────────────────────────────────────────────── */
+/* Works for both manual and Django-generated form.as_p */
+.form-wrapper { margin-top: 8px; }
+
+form p,
+.form-group {
+  margin-bottom: 22px;
+}
+
+form p label,
+label {
+  display: block;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="number"],
+textarea,
+select {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  color: var(--text);
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: vertical;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+textarea { min-height: 200px; }
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent-dim);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+input::placeholder, textarea::placeholder { color: var(--text-faint); }
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a5a3e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
+  cursor: pointer;
+}
+
+/* Django form helptext */
+.helptext, form p .helptext {
+  display: block;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* Django error list */
+.errorlist {
+  list-style: none;
+  margin-bottom: 10px;
+}
+.errorlist li {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.78rem;
+  color: #e06060;
+  padding: 6px 10px;
+  background: rgba(184, 50, 40, 0.08);
+  border-left: 2px solid var(--burn);
+  border-radius: 0 2px 2px 0;
+  margin-bottom: 4px;
+}
+
+/* ─── Cards ──────────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  margin-bottom: 14px;
+  position: relative;
+  transition: border-color 0.2s;
+}
+
+.card:hover { border-color: var(--accent-dim); }
+
+.card-accent {
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--accent-dim), transparent);
+  border-radius: 2px 0 0 2px;
+}
+
+.card-meta {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 10px;
+}
+
+/* ─── Weight / Level List ─────────────────────────────────────────────── */
+.weight-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.weight-list li {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all 0.18s;
+}
+
+.weight-list li:hover {
+  background: var(--surface-2);
+  border-color: var(--accent-dim);
+  transform: translateX(2px);
+}
+
+.weight-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--accent-dim);
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.weight-label {
+  color: var(--text-muted);
+  font-family: 'Lora', serif;
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+.weight-list li a {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.weight-list li a:hover { color: var(--accent); text-decoration: none; }
+
+/* ─── Secret Reveal Box ──────────────────────────────────────────────── */
+.secret-reveal {
+  position: relative;
+  background: var(--surface-2);
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--radius);
+  padding: 36px 32px 28px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--text);
+  box-shadow: 0 0 40px var(--accent-glow);
+  margin-bottom: 28px;
+  animation: revealIn 0.6s ease both;
+}
+
+@keyframes revealIn {
+  from { opacity: 0; filter: blur(8px); transform: scale(0.98); }
+  to   { opacity: 1; filter: blur(0); transform: scale(1); }
+}
+
+.secret-reveal-quote {
+  font-family: 'Playfair Display', serif;
+  font-size: 5rem;
+  line-height: 0.7;
+  color: var(--accent-dim);
+  position: absolute;
+  top: 16px;
+  left: 18px;
+  opacity: 0.4;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ─── Timer ──────────────────────────────────────────────────────────── */
+.timer-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.timer-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.5s ease infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.7); }
+}
+
+#timer-value {
+  font-size: 0.88rem;
+  color: var(--accent);
+  min-width: 44px;
+}
+
+.timer-bar.urgent { border-color: var(--burn-dim); }
+.timer-bar.urgent #timer-value { color: #e05050; }
+.timer-bar.urgent .timer-dot { background: #e05050; }
+
+/* ─── Status Pages ───────────────────────────────────────────────────── */
+.status-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 60px 20px 40px;
+}
+
+.status-glyph {
+  font-size: 3.5rem;
+  margin-bottom: 28px;
+  opacity: 0.6;
+  line-height: 1;
+}
+
+.status-page h2 {
+  border-bottom: none;
+  padding-bottom: 0;
+  display: block;
+}
+
+.status-page p {
+  max-width: 380px;
+}
+
+/* ─── Action Rows ─────────────────────────────────────────────────────── */
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 24px;
+}
+
+/* ─── Danger Zone ─────────────────────────────────────────────────────── */
+.danger-zone {
+  margin-top: 32px;
+  padding: 24px;
+  border: 1px solid var(--burn-dim);
+  border-radius: var(--radius);
+  background: rgba(90, 24, 16, 0.06);
+}
+
+.danger-zone h3 {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #8a3838;
+  margin-bottom: 12px;
+}
+
+/* ─── Empty State ─────────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 52px 20px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.empty-state p {
+  font-style: italic;
+  margin-bottom: 16px;
+}
+
+/* ─── Badge ───────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+/* ─── Stat Grid ───────────────────────────────────────────────────────── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 28px 0;
+}
+
+.stat-cell {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.stat-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-label {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* ─── Burn Effect ─────────────────────────────────────────────────────── */
+.burn-animation {
+  animation: burnAway 1s ease forwards;
+}
+
+@keyframes burnAway {
+  0%   { opacity: 1; filter: brightness(1); transform: translateY(0); }
+  40%  { filter: brightness(1.6) sepia(1) saturate(4) hue-rotate(-10deg); }
+  100% { opacity: 0; filter: brightness(0.2) sepia(1) saturate(0); transform: translateY(8px) scale(0.98); }
+}
+
+/* ─── How It Works ────────────────────────────────────────────────────── */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 40px 0;
+  position: relative;
+}
+
+.steps::before {
+  content: '';
+  position: absolute;
+  left: 19px;
+  top: 24px;
+  bottom: 24px;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--accent-dim), transparent);
+}
+
+.step {
+  display: flex;
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.step-num {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--accent-dim);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 0.9rem;
+  color: var(--accent);
+  flex-shrink: 0;
+  background: var(--bg);
+  z-index: 1;
+}
+
+.step-content h4 {
+  font-family: 'Lora', serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.step-content p {
+  font-size: 0.88rem;
+  margin-bottom: 0;
+}
+
+/* ─── Footer ──────────────────────────────────────────────────────────── */
+footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--border);
+  padding: 20px 32px;
+  text-align: center;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  main { padding: 36px 16px 80px; }
+  header nav { padding: 0 16px; }
+  .nav-links a { padding: 0 12px; letter-spacing: 0.1em; }
+  h2 { font-size: 1.5rem; }
+  .hero h1 { font-size: 2.2rem; }
+}

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Ошибка обмена — Secret Exchange{% endblock %}
+{% block content %}
+
+<div class="status-page">
+  <span class="status-glyph">✕</span>
+  <h2>Что-то пошло не так</h2>
+  <p>При обмене возникла ошибка. Твой секрет не был затронут.</p>
+
+  {% if error %}
+  <div class="card" style="margin-top: 28px; text-align: left; max-width: 480px;">
+    <div class="card-accent"></div>
+    <div class="card-meta">Технические детали</div>
+    <code style="font-family: 'Courier Prime', monospace; font-size: 0.8rem; color: var(--text-muted); word-break: break-all;">
+      {{ error }}
+    </code>
+  </div>
+  {% endif %}
+
+  <div class="action-row" style="justify-content: center; margin-top: 32px;">
+    <a href="/exchange/" class="btn">Попробовать снова</a>
+    <a href="/" class="btn btn-ghost">На главную</a>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,11 +1,26 @@
 {% extends 'base.html' %}
-{% block title %}Удалить секрет{% endblock %}
+{% block title %}Удалить секрет — Secret Exchange{% endblock %}
 {% block content %}
-<h2>Удалить секрет?</h2>
-<p>Это действие необратимо.</p>
-<form method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn">Да, удалить</button>
-    <a href="/my/">Отмена</a>
-</form>
+
+<div class="status-page">
+  <span class="status-glyph">⚠</span>
+  <h2>Удалить секрет?</h2>
+  <p>
+    Это действие необратимо.<br>
+    Если секрет ещё не был обменян, он будет удалён навсегда.
+  </p>
+
+  <div class="danger-zone" style="margin-top: 36px; max-width: 400px;">
+    <h3>Зона опасности</h3>
+    <p>После удаления секрет нельзя восстановить. Обмен с его использованием станет невозможен.</p>
+    <form method="post" id="delete-form" style="margin-top: 16px;">
+      {% csrf_token %}
+      <div class="action-row">
+        <button type="submit" class="btn btn-danger">Да, удалить</button>
+        <a href="/my/" class="btn btn-ghost">Отмена</a>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% endblock %}

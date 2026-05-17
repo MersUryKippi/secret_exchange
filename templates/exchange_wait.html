@@ -1,6 +1,18 @@
 {% extends 'base.html' %}
-{% block title %}Ожидание{% endblock %}
+{% block title %}Ожидание — Secret Exchange{% endblock %}
 {% block content %}
-<h2>Подходящего партнёра пока нет</h2>
-<p>Попробуй позже — система подберёт пару по уровню тяжести секрета.</p>
+
+<div class="status-page">
+  <span class="status-glyph" style="animation: pulse 2s ease infinite; display: block;">⧗</span>
+  <h2>Ищем партнёра…</h2>
+  <p>
+    Подходящего партнёра по уровню тяжести пока нет.<br>
+    Попробуй позже — система подберёт пару автоматически.
+  </p>
+  <div class="action-row" style="justify-content: center; margin-top: 32px;">
+    <a href="/exchange/" class="btn">Попробовать снова</a>
+    <a href="/" class="btn btn-ghost">На главную</a>
+  </div>
+</div>
+
 {% endblock %}

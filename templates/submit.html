@@ -1,10 +1,29 @@
 {% extends 'base.html' %}
-{% block title %}Написать секрет{% endblock %}
+{% block title %}Написать секрет — Secret Exchange{% endblock %}
 {% block content %}
-<h2>Напиши свой секрет</h2>
-<form method="post">
+
+<h2>Напиши свой секрет <span class="subtitle">/ шаг 1 из 2</span></h2>
+
+<p>Твой текст будет зашифрован. Никто не узнает, что это написал именно ты.</p>
+
+<hr class="divider">
+
+<div class="form-wrapper">
+  <form method="post">
     {% csrf_token %}
+    {% if form.non_field_errors %}
+      <ul class="errorlist">
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
     {{ form.as_p }}
-    <button type="submit" class="btn">Отправить секрет</button>
-</form>
+    <div class="action-row">
+      <button type="submit" class="btn">Запечатать секрет</button>
+      <a href="/" class="btn btn-ghost">Отмена</a>
+    </div>
+  </form>
+</div>
+
 {% endblock %}
