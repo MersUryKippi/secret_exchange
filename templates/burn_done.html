@@ -10,9 +10,18 @@
     Он больше не существует нигде.
   </p>
   <div class="action-row" style="justify-content: center; margin-top: 32px;">
-    <a href="/" class="btn">На главную</a>
+    {% if exchange_id %}
+      <a href="/chat/{{ exchange_id }}/" class="btn">Перейти в чат</a>
+    {% endif %}
+    <a href="/" class="btn btn-ghost">На главную</a>
     <a href="/submit/" class="btn btn-ghost">Поделиться ещё</a>
   </div>
+
+  {% if exchange_id %}
+  <p style="margin-top: 20px; font-size: 0.8rem; color: var(--text-muted, #888);">
+    Чат с собеседником открыт ещё час — анонимно, без следов.
+  </p>
+  {% endif %}
 </div>
 
 {% endblock %}

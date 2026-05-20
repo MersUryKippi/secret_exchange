@@ -50,11 +50,13 @@ if (burnForm) {
 /* ─── Delete Confirm ─────────────────────────────────────────────────── */
 const deleteForm = document.getElementById('delete-form');
 if (deleteForm) {
-  const btn = deleteForm.querySelector('button[type="submit"]');
-  if (btn) {
-    btn.addEventListener('click', () => {
+  deleteForm.addEventListener('submit', (e) => {
+    const btn = deleteForm.querySelector('button[type="submit"]');
+    if (btn) {
       btn.textContent = 'Удаляем…';
-      btn.disabled = true;
-    });
-  }
+      // не делаем disabled, иначе форма не отправится в некоторых браузерах
+      btn.style.pointerEvents = 'none';
+      btn.style.opacity = '0.6';
+    }
+  });
 }

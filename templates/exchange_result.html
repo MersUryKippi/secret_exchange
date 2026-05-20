@@ -28,6 +28,15 @@
   </div>
 </form>
 
+<div class="chat-teaser" style="margin-top: 48px; padding: 24px; border: 1px solid var(--border, #333); border-radius: 4px; max-width: 480px;">
+  <p style="margin: 0 0 8px; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted, #888);">После обмена</p>
+  <h4 style="margin: 0 0 10px;">Хочешь поговорить анонимно?</h4>
+  <p style="margin: 0 0 20px; font-size: 0.9rem; color: var(--text-muted, #888);">
+    После того как сожжёшь секрет, у вас будет час, чтобы пообщаться с собеседником. Без имён и без следов.
+  </p>
+  <a href="/chat/{{ exchange.id }}/" class="btn btn-ghost">Открыть чат →</a>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
