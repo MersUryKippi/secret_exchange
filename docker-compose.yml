@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   db:
     image: postgres:15
@@ -6,22 +5,29 @@ services:
       POSTGRES_DB: secret_exchange_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: "Groh2403@"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   redis:
     image: redis:7
 
   web:
     build: .
-    command: /app/entrypoint.sh
+    command: sh /app/entrypoint.sh
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       - DB_HOST=db
       - DB_NAME=secret_exchange_db
@@ -37,8 +43,10 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       - DB_HOST=db
       - DB_NAME=secret_exchange_db
@@ -47,6 +55,3 @@ services:
       - DB_PORT=5432
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
-
-volumes:
-  postgres_data:
