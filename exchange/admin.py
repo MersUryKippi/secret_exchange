@@ -7,7 +7,7 @@ class SecretWeightAdmin(admin.ModelAdmin):
 
 @admin.register(Secret)
 class SecretAdmin(admin.ModelAdmin):
-    list_display = ['id', 'owner_session_key', 'weight', 'created_at', 'report_count']
+    list_display = ['id', 'owner_session_key', 'weight', 'created_at']
 
 @admin.register(Exchange)
 class ExchangeAdmin(admin.ModelAdmin):

@@ -11,7 +11,7 @@
   </p>
   <div class="action-row" style="justify-content: center; margin-top: 32px;">
     {% if exchange_id %}
-      <a href="/chat/{{ exchange_id }}/" class="btn">Перейти в чат</a>
+      <a href="/chat/{{ exchange_id }}/?token={{ my_token }}" class="btn">Перейти в чат</a>
     {% endif %}
     <a href="/" class="btn btn-ghost">На главную</a>
     <a href="/submit/" class="btn btn-ghost">Поделиться ещё</a>

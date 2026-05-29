@@ -16,11 +16,18 @@
     </div>
   </div>
 
+  {% if exchange.status != 'active' %}
+  <div class="chat-notice" style="margin-top: 12px;">
+    <span class="notice-icon">◌</span>
+    <span>Чат завершён. Все сообщения уничтожены безвозвратно.</span>
+  </div>
+  {% endif %}
+
   <div class="chat-messages" id="chat-messages">
     {% for msg in messages %}
-      <div class="chat-msg {% if msg.sender_session_key == session_key %}chat-msg--mine{% else %}chat-msg--theirs{% endif %}">
+      <div class="chat-msg {% if msg.sender_token == my_token %}chat-msg--mine{% else %}chat-msg--theirs{% endif %}" data-msg-id="{{ msg.id }}">
         <div class="chat-msg-meta">
-          {% if msg.sender_session_key == session_key %}Ты{% else %}Собеседник{% endif %}
+          {% if msg.sender_token == my_token %}Ты{% else %}Собеседник{% endif %}
           &middot; {{ msg.created_at|date:"H:i" }}
         </div>
         <div class="chat-msg-bubble">{{ msg.text }}</div>
@@ -32,6 +39,27 @@
       </div>
     {% endfor %}
   </div>
+
+  <!-- Share link + end chat -->
+  <div class="chat-share-row" id="chat-share-row">
+    {% if exchange.status == 'active' %}
+    <button class="chat-share-btn" id="end-chat-btn" style="margin-left:auto;color:var(--burn,#b83228);">Завершить чат</button>
+    {% endif %}
+  </div>
+
+  <!-- End-chat confirmation modal -->
+  {% if exchange.status == 'active' %}
+  <div id="end-chat-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;">
+    <div style="background:var(--surface-2,#181410);border:1px solid var(--burn-dim,#5a1810);border-radius:2px;padding:32px 28px;max-width:380px;width:90%;text-align:center;">
+      <p style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--text,#ddd0b0);margin-bottom:12px;">Завершить чат?</p>
+      <p style="font-size:0.85rem;margin-bottom:24px;">Все сообщения будут удалены безвозвратно для обоих участников.</p>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button id="end-chat-confirm" class="btn btn-danger">Да, завершить</button>
+        <button id="end-chat-cancel" class="btn btn-ghost">Отмена</button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <div class="chat-input-row">
     {% if exchange.status == 'active' %}
@@ -64,24 +92,113 @@
 {% block extra_js %}
 <script>
   const EXCHANGE_ID   = "{{ exchange.id }}";
-  const SESSION_KEY   = "{{ session_key }}";
+  const MY_TOKEN      = "{{ my_token }}";
   const DELETE_AT_ISO = "{{ exchange.chat_delete_at|date:'c' }}";
   const CSRF_TOKEN    = "{{ csrf_token }}";
+  const INITIAL_STATUS = "{{ exchange.status }}";
 
-  /* ── Countdown ── */
+  // ── Persist token in localStorage for "return to chat" banner ──────────
+  localStorage.setItem(`exchange_token_${EXCHANGE_ID}`, MY_TOKEN);
+  localStorage.setItem('latest_exchange_id',    String(EXCHANGE_ID));
+  localStorage.setItem('latest_exchange_token', MY_TOKEN);
+
+
+  // ── Countdown ────────────────────────────────────────────────────────────
+  const deleteAt = new Date(DELETE_AT_ISO).getTime();
+
   function updateCountdown() {
-    const diff = Math.max(0, Math.floor((new Date(DELETE_AT_ISO) - Date.now()) / 1000));
+    const diff = Math.max(0, Math.floor((deleteAt - Date.now()) / 1000));
     const m = Math.floor(diff / 60).toString().padStart(2, '0');
     const s = (diff % 60).toString().padStart(2, '0');
-    document.getElementById('chat-countdown').textContent = `${m}:${s}`;
-    if (diff === 0) {
-      document.getElementById('chat-countdown').textContent = 'закрыт';
-    }
+    const el = document.getElementById('chat-countdown');
+    el.textContent = diff === 0 ? 'закрыт' : `${m}:${s}`;
+    if (diff <= 60) el.style.color = 'var(--burn, #b83228)';
   }
   updateCountdown();
   setInterval(updateCountdown, 1000);
 
-  /* ── Auto-resize textarea ── */
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function scrollToBottom() {
+    const box = document.getElementById('chat-messages');
+    box.scrollTop = box.scrollHeight;
+  }
+  scrollToBottom();
+
+  // ── Render a message bubble ──────────────────────────────────────────────
+  function renderMessage(m) {
+    document.getElementById('chat-empty')?.remove();
+
+    const wrap = document.createElement('div');
+    wrap.className = `chat-msg ${m.is_mine ? 'chat-msg--mine' : 'chat-msg--theirs'}`;
+    wrap.dataset.msgId = m.id;
+
+    const time = m.created_at ? m.created_at.slice(11, 16) : '';
+    wrap.innerHTML = `
+      <div class="chat-msg-meta">${m.is_mine ? 'Ты' : 'Собеседник'} &middot; ${time}</div>
+      <div class="chat-msg-bubble">${escapeHtml(m.text)}</div>
+    `;
+
+    const box = document.getElementById('chat-messages');
+    const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+    box.appendChild(wrap);
+    if (wasAtBottom) scrollToBottom();
+  }
+
+  // ── Closed state ─────────────────────────────────────────────────────────
+  let chatClosed = INITIAL_STATUS !== 'active';
+
+  function handleClosed() {
+    if (chatClosed) return;
+    chatClosed = true;
+    const form = document.getElementById('chat-form');
+    if (form) {
+      form.outerHTML = `<div class="chat-closed-notice"><span>Чат завершён. Сообщения удалены.</span></div>`;
+    }
+    // Clear banner storage
+    localStorage.removeItem('latest_exchange_id');
+    localStorage.removeItem('latest_exchange_token');
+  }
+
+  // ── Polling ──────────────────────────────────────────────────────────────
+  let lastId = (() => {
+    let max = 0;
+    document.querySelectorAll('.chat-msg[data-msg-id]').forEach(el => {
+      const id = parseInt(el.dataset.msgId, 10);
+      if (id > max) max = id;
+    });
+    return max;
+  })();
+
+  async function pollMessages() {
+    if (chatClosed) return;
+    try {
+      const res = await fetch(
+        `/chat/${EXCHANGE_ID}/messages/?after=${lastId}&token=${encodeURIComponent(MY_TOKEN)}`
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (data.status !== 'active') handleClosed();
+
+      (data.messages || []).forEach(m => {
+        if (!document.querySelector(`[data-msg-id="${m.id}"]`)) {
+          renderMessage(m);
+          if (m.id > lastId) lastId = m.id;
+        }
+      });
+    } catch (e) {}
+  }
+
+  setInterval(pollMessages, 2000);
+
+  // ── Auto-resize textarea ─────────────────────────────────────────────────
   const input = document.getElementById('chat-input');
   if (input) {
     input.addEventListener('input', () => {
@@ -96,80 +213,12 @@
     });
   }
 
-  /* ── Render a single message bubble ── */
-  function renderMessage(msg) {
-    const isMine = msg.sender_session_key === SESSION_KEY;
-    const empty = document.getElementById('chat-empty');
-    if (empty) empty.remove();
-
-    const wrap = document.createElement('div');
-    wrap.className = `chat-msg ${isMine ? 'chat-msg--mine' : 'chat-msg--theirs'}`;
-    wrap.dataset.msgId = msg.id;
-
-    const time = msg.created_at ? msg.created_at.slice(11, 16) : '';
-    wrap.innerHTML = `
-      <div class="chat-msg-meta">${isMine ? 'Ты' : 'Собеседник'} &middot; ${time}</div>
-      <div class="chat-msg-bubble">${escapeHtml(msg.text)}</div>
-    `;
-    document.getElementById('chat-messages').appendChild(wrap);
-    scrollToBottom();
-  }
-
-  function escapeHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  function scrollToBottom() {
-    const box = document.getElementById('chat-messages');
-    box.scrollTop = box.scrollHeight;
-  }
-  scrollToBottom();
-
-  /* ── Polling for new messages ── */
-  let lastId = (() => {
-    const msgs = document.querySelectorAll('.chat-msg[data-msg-id]');
-    let max = 0;
-    msgs.forEach(m => { const id = parseInt(m.dataset.msgId); if (id > max) max = id; });
-    return max;
-  })();
-
-  // Assign data-msg-id to server-rendered messages (they don't have it yet)
-  // We rely on the poll to fill in new ones; existing ones just need IDs for lastId tracking.
-  // Re-query after load:
-  document.querySelectorAll('.chat-msg').forEach((el, i) => {
-    // server-rendered messages won't have data-msg-id; that's fine — we track lastId=0 at start
-    // and poll will return only messages with id > 0 so we get fresh ones.
-  });
-
-  async function pollMessages() {
-    try {
-      const res = await fetch(`/chat/${EXCHANGE_ID}/messages/?after=${lastId}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data.messages && data.messages.length) {
-        data.messages.forEach(msg => {
-          if (!document.querySelector(`[data-msg-id="${msg.id}"]`)) {
-            renderMessage(msg);
-            if (msg.id > lastId) lastId = msg.id;
-          }
-        });
-      }
-    } catch (e) {}
-  }
-
-  // On first load, set lastId from server-rendered messages
-  document.querySelectorAll('.chat-msg').forEach(el => {
-    // We can't get server-rendered IDs without adding data attributes server-side.
-    // They're included above via Django template — let's rely on that.
-  });
-
-  setInterval(pollMessages, 2500);
-
-  /* ── Send message ── */
+  // ── Send ─────────────────────────────────────────────────────────────────
   const form = document.getElementById('chat-form');
   if (form) {
     form.addEventListener('submit', async e => {
       e.preventDefault();
+      if (chatClosed) return;
       const text = input.value.trim();
       if (!text) return;
 
@@ -183,7 +232,7 @@
             'Content-Type': 'application/json',
             'X-CSRFToken': CSRF_TOKEN,
           },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text, token: MY_TOKEN }),
         });
         const data = await res.json();
         if (data.message) {
@@ -192,7 +241,40 @@
             if (data.message.id > lastId) lastId = data.message.id;
           }
         }
+      } catch (e) {
+        input.value = text; // restore on network failure
+      }
+    });
+  }
+
+  // ── End chat ─────────────────────────────────────────────────────────────
+  const endBtn     = document.getElementById('end-chat-btn');
+  const endModal   = document.getElementById('end-chat-modal');
+  const endConfirm = document.getElementById('end-chat-confirm');
+  const endCancel  = document.getElementById('end-chat-cancel');
+
+  if (endBtn && endModal) {
+    endBtn.addEventListener('click', () => {
+      endModal.style.display = 'flex';
+    });
+    endCancel.addEventListener('click', () => {
+      endModal.style.display = 'none';
+    });
+    endModal.addEventListener('click', (e) => {
+      if (e.target === endModal) endModal.style.display = 'none';
+    });
+    endConfirm.addEventListener('click', async () => {
+      endConfirm.textContent = 'Завершаем…';
+      endConfirm.style.pointerEvents = 'none';
+      try {
+        await fetch(`/chat/${EXCHANGE_ID}/end/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+          body: JSON.stringify({ token: MY_TOKEN }),
+        });
       } catch (e) {}
+      endModal.style.display = 'none';
+      handleClosed();
     });
   }
 </script>

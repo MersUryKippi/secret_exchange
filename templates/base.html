@@ -34,7 +34,17 @@
     <span>Secret Exchange &mdash; анонимно &middot; честно &middot; без следов &middot; +18</span>
   </footer>
 
+  {% if not hide_peek_animals %}
+  <div class="peek-wrap peek-wrap--cat">
+    <img class="peek-animal" src="{% static 'images/cat.jpeg' %}" alt="" aria-hidden="true">
+  </div>
+  <div class="peek-wrap peek-wrap--dog">
+    <img class="peek-animal" src="{% static 'images/dog.jpeg' %}" alt="" aria-hidden="true">
+  </div>
+  {% endif %}
+
   <script src="{% static 'js/main.js' %}"></script>
   {% block extra_js %}{% endblock %}
+
 </body>
 </html>

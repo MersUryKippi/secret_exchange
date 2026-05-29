@@ -1,6 +1,7 @@
 from django.db import models
 from cryptography.fernet import Fernet
 import hashlib
+import secrets
 
 
 class SecretWeight(models.Model):
@@ -24,11 +25,52 @@ class Exchange(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     chat_delete_at = models.DateTimeField()
 
+    # ── NEW: per-participant access tokens ──────────────────────────────────
+    # Each participant gets a unique opaque token stored in their browser
+    # (localStorage). This allows returning to the chat from any device /
+    # after the session cookie changes, without exposing the other
+    # participant's token.
+    participant1_token = models.CharField(max_length=64, blank=True, default='')
+    participant2_token = models.CharField(max_length=64, blank=True, default='')
+
     class Meta:
         db_table = 'exchange'
 
     def __str__(self):
         return f"Обмен #{self.id} [{self.status}]"
+
+    # ── helpers ─────────────────────────────────────────────────────────────
+
+    def generate_tokens(self):
+        """Call once right after creation to populate both tokens."""
+        self.participant1_token = secrets.token_hex(32)
+        self.participant2_token = secrets.token_hex(32)
+
+    def token_for_session(self, session_key: str) -> str | None:
+        """Return the token that belongs to this session, or None."""
+        if self.participant1_session_key == session_key:
+            return self.participant1_token
+        if self.participant2_session_key == session_key:
+            return self.participant2_token
+        return None
+
+    def is_valid_token(self, token: str) -> bool:
+        """Check whether the token belongs to either participant."""
+        if not token:
+            return False
+        return token in (self.participant1_token, self.participant2_token)
+
+    def token_identity(self, token: str) -> str | None:
+        """
+        Return a stable pseudo-identity string for a token so the chat UI can
+        label messages as 'me' vs 'them' regardless of which device is used.
+        Returns 'p1' | 'p2' | None.
+        """
+        if token == self.participant1_token:
+            return 'p1'
+        if token == self.participant2_token:
+            return 'p2'
+        return None
 
 
 class Secret(models.Model):
@@ -67,6 +109,8 @@ class Secret(models.Model):
 class Message(models.Model):
     exchange = models.ForeignKey(Exchange, on_delete=models.CASCADE)
     sender_session_key = models.CharField(max_length=40)
+    # ── NEW: token-based sender identity so messages survive session changes ─
+    sender_token = models.CharField(max_length=64, blank=True, default='')
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 

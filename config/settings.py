@@ -129,3 +129,6 @@ SESSION_SAVE_EVERY_REQUEST = True
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.82.55.93', '10.13.231.9']
+ALLOWED_HOSTS = ['*']
