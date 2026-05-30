@@ -128,7 +128,7 @@ def do_exchange(request):
                 exchange__isnull=True,
                 weight__weight__gte=my_secret.weight.weight - 1,
                 weight__weight__lte=my_secret.weight.weight + 1,
-            ).exclude(owner_session_key=session_key).first()
+            ).exclude(owner_session_key=session_key).exclude(id=my_secret.id).first()
 
             if not partner_secret:
                 return render(request, 'exchange_wait.html')
